@@ -1,20 +1,23 @@
 <!DOCTYPE html>
 <html>
+
 <head>
   <meta charset="UTF-8">
   <title>GeneticBoids by @attentionmech</title>
   <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.2/p5.min.js"></script>
   <style>
-    body { 
-      margin: 0; 
-      background: #000; 
-      overflow: hidden; 
+    body {
+      margin: 0;
+      background: #000;
+      overflow: hidden;
       font-family: 'Courier New', monospace;
       display: flex;
     }
+
     #canvas-container {
       flex: 1;
     }
+
     #control-panel {
       width: 320px;
       background: rgba(20, 20, 30, 0.95);
@@ -25,6 +28,7 @@
       border-left: 2px solid #00ff88;
       box-shadow: -5px 0 15px rgba(0, 255, 136, 0.2);
     }
+
     .control-group {
       margin-bottom: 20px;
       border: 1px solid #004422;
@@ -32,6 +36,7 @@
       border-radius: 5px;
       background: rgba(0, 68, 34, 0.1);
     }
+
     .control-group h3 {
       margin: 0 0 10px 0;
       color: #00ffaa;
@@ -39,18 +44,21 @@
       font-size: 14px;
       text-transform: uppercase;
     }
+
     .control-item {
       margin-bottom: 8px;
       display: flex;
       align-items: center;
       justify-content: space-between;
     }
+
     label {
       font-size: 11px;
       color: #88ffcc;
       flex: 1;
       margin-right: 8px;
     }
+
     input[type="range"] {
       flex: 1;
       margin: 0 5px;
@@ -60,6 +68,7 @@
       border-radius: 2px;
       outline: none;
     }
+
     input[type="range"]::-webkit-slider-thumb {
       -webkit-appearance: none;
       width: 12px;
@@ -69,6 +78,7 @@
       cursor: pointer;
       box-shadow: 0 0 5px #00ff88;
     }
+
     input[type="number"] {
       width: 50px;
       background: #001122;
@@ -78,6 +88,7 @@
       border-radius: 3px;
       font-size: 10px;
     }
+
     button {
       background: linear-gradient(45deg, #004422, #006633);
       border: 1px solid #00ff88;
@@ -91,11 +102,13 @@
       margin: 2px;
       box-shadow: 0 2px 5px rgba(0, 255, 136, 0.2);
     }
+
     button:hover {
       background: linear-gradient(45deg, #006633, #008844);
       box-shadow: 0 0 10px rgba(0, 255, 136, 0.4);
       transform: translateY(-1px);
     }
+
     .value-display {
       font-size: 10px;
       color: #00ff88;
@@ -103,11 +116,13 @@
       text-align: right;
       font-weight: bold;
     }
+
     .preset-buttons {
       display: flex;
       flex-wrap: wrap;
       gap: 4px;
     }
+
     #stats {
       font-size: 10px;
       color: #88ffcc;
@@ -117,22 +132,26 @@
       border-radius: 3px;
       margin-top: 10px;
     }
+
     .danger-zone {
       border-color: #ff4444 !important;
       background: rgba(68, 0, 0, 0.1) !important;
     }
+
     .danger-zone h3 {
       color: #ff6666 !important;
       text-shadow: 0 0 5px #ff4444 !important;
     }
   </style>
 </head>
+
 <body>
   <div id="canvas-container"></div>
   <div id="control-panel">
-    
+
     <h2 style="margin: 0 0 15px 0; color: #00ffaa; text-align: center; text-shadow: 0 0 10px #00ffaa;">GeneticBoids</h2>
-    <h4 style="margin: 0 0 15px 0; color: #00ffaa; text-align: center; text-shadow: 0 0 10px #00ffaa;">by @attentionmech</h4>
+    <h4 style="margin: 0 0 15px 0; color: #00ffaa; text-align: center; text-shadow: 0 0 10px #00ffaa;">by @attentionmech
+    </h4>
     <div class="control-group">
       <h3>Population</h3>
       <div class="control-item">
@@ -206,6 +225,16 @@
         <span class="value-display" id="cohRangeDisplay">40</span>
       </div>
     </div>
+
+    <div class="control-group">
+      <h3>Aging</h3>
+      <div class="control-item">
+        <label>Boid Lifespan</label>
+        <input type="range" id="boidLifespan" min="100" max="10000" step="100" value="100">
+        <span class="value-display" id="boidLifespanDisplay">2000</span>
+      </div>
+    </div>
+
 
     <div class="control-group">
       <h3>Genetic Signaling</h3>
@@ -286,366 +315,409 @@
     </div>
 
 
-    <h3><a href='https://x.com/@attentionmech'>@attentionmech</a><h3>
-    <h3><a href='https://github.com/attentionmech/genetic-boids'>github</a><h3>
+    <h3><a href='https://x.com/@attentionmech'>@attentionmech</a>
+      <h3>
+        <h3><a href='https://github.com/attentionmech/genetic-boids'>github</a>
+          <h3>
 
-    <div id="stats">
-      <strong>STATS:</strong><br>
-      FPS: <span id="fps">--</span><br>
-      Active Signals: <span id="signalCount">--</span><br>
-      Avg Speed: <span id="avgSpeed">--</span><br>
-      Clusters: <span id="clusterCount">--</span>
-    </div>
+            <div id="stats">
+              <strong>STATS:</strong><br>
+              FPS: <span id="fps">--</span><br>
+              Active Signals: <span id="signalCount">--</span><br>
+              Avg Speed: <span id="avgSpeed">--</span><br>
+              Clusters: <span id="clusterCount">--</span>
+            </div>
   </div>
 
-<script>
-let flock = [], grid = {};
-let signalRange = 50, signalProbability = 0.002, signalForce = 0.1;
-let cellSize = 50, signalLines = [];
-let maxSpeed = 2.5, maxForce = 0.1;
-let alignWeight = 1, sepWeight = 1.5, cohWeight = 1;
-let alignRange = 40, sepRange = 20, cohRange = 40;
-let boidSize = 1, signalAlpha = 150, bgBrightness = 0;
-let genomeLength = 6, targetFPS = 60;
-let initSpeedMin = 1, initSpeedMax = 3;
+  <script>
+    let flock = [], grid = {};
+    let signalRange = 50, signalProbability = 0.002, signalForce = 0.1;
+    let cellSize = 50, signalLines = [];
+    let maxSpeed = 2.5, maxForce = 0.1;
+    let alignWeight = 1, sepWeight = 1.5, cohWeight = 1;
+    let alignRange = 40, sepRange = 20, cohRange = 40;
+    let boidSize = 1, signalAlpha = 150, bgBrightness = 0;
+    let genomeLength = 6, targetFPS = 60;
+    let initSpeedMin = 1, initSpeedMax = 3;
+    let boidLifespan = 2000;
 
-function setup() {
-  let canvas = createCanvas(windowWidth - 320, windowHeight, WEBGL);
-  canvas.parent('canvas-container');
-  
-  for (let i = 0; i < 1000; i++) {
-    flock.push(new Boid(random(width), random(height)));
-  }
-  
-  setupControls();
-  frameRate(targetFPS);
-}
+    function setup() {
+      let canvas = createCanvas(windowWidth - 320, windowHeight, WEBGL);
+      canvas.parent('canvas-container');
 
-function draw() {
-  background(bgBrightness);
-  translate(-width/2, -height/2);
+      for (let i = 0; i < 1000; i++) {
+        flock.push(new Boid(random(width), random(height)));
+      }
 
-  updateGrid(flock);
-  signalLines = [];
-
-  for (let boid of flock) {
-    let neighbors = getNearby(boid);
-    boid.flock(neighbors);
-    boid.signal(neighbors);
-    boid.update();
-    boid.edges();
-  }
-
-  for (let boid of flock) {
-    boid.show();
-  }
-
-  // Draw signal lines
-  stroke(255, 100, 100, signalAlpha);
-  strokeWeight(0.5);
-  for (let [a, b] of signalLines) {
-    line(a.x, a.y, b.x, b.y);
-  }
-
-  updateStats();
-}
-
-function updateGrid(boids) {
-  grid = {};
-  for (let boid of boids) {
-    let key = `${Math.floor(boid.position.x / cellSize)}:${Math.floor(boid.position.y / cellSize)}`;
-    if (!grid[key]) grid[key] = [];
-    grid[key].push(boid);
-  }
-}
-
-function getNearby(boid) {
-  let x = Math.floor(boid.position.x / cellSize);
-  let y = Math.floor(boid.position.y / cellSize);
-  let neighbors = [];
-  for (let dx = -1; dx <= 1; dx++) {
-    for (let dy = -1; dy <= 1; dy++) {
-      let key = `${x + dx}:${y + dy}`;
-      if (grid[key]) neighbors.push(...grid[key]);
+      setupControls();
+      frameRate(targetFPS);
     }
-  }
-  return neighbors;
-}
 
-class Boid {
-  constructor(x, y, genome) {
-    this.position = createVector(x, y);
-    this.velocity = p5.Vector.random2D().setMag(random(initSpeedMin, initSpeedMax));
-    this.acceleration = createVector();
-    this.maxForce = maxForce;
-    this.maxSpeed = maxSpeed;
-    this.genome = genome || Boid.randomGenome();
-  }
+    function draw() {
+      background(bgBrightness);
+      translate(-width / 2, -height / 2);
 
-  static randomGenome() {
-    return Array.from({length: genomeLength}, () => random([0, 1])).join('');
-  }
+      updateGrid(flock);
+      signalLines = [];
 
-  static invert(str) {
-    return str.split('').map(c => c === '0' ? '1' : '0').join('');
-  }
+      let newBoids = [];
+      for (let boid of flock) {
+        let neighbors = getNearby(boid);
+        boid.flock(neighbors);
+        boid.signal(neighbors);
+        let offspring = boid.reproduce(neighbors);
+        if (offspring) newBoids.push(offspring);
+        boid.update();
+        boid.edges();
+      }
 
-  static brightColorFromGenome(g) {
-    let r = parseInt(g.slice(0, 2), 2) * 85 + 85;
-    let gVal = parseInt(g.slice(2, 4), 2) * 85 + 85;
-    let b = parseInt(g.slice(4, 6), 2) * 85 + 85;
-    return color(r % 256, gVal % 256, b % 256);
-  }
+      flock = flock.filter(boid => !boid.isDead());
+      flock.push(...newBoids);
 
-  signal(neighbors) {
-    if (random() < signalProbability) {
-      const maxStart = Math.max(0, genomeLength - 3);
-      const start = floor(random(0, maxStart + 1));
-      const end = Math.min(start + 3, genomeLength);
-      const substr = this.genome.substring(start, end);
-      const inverted = Boid.invert(substr);
+      for (let boid of flock) {
+        boid.show();
+      }
 
-      for (let other of neighbors) {
-        if (other !== this && other.genome.includes(inverted)) {
-          const dir = p5.Vector.sub(this.position, other.position);
-          const distance = dir.mag();
-          if (distance < signalRange) {
-            const attraction = dir.setMag(signalForce);
-            other.acceleration.add(attraction);
-            signalLines.push([this.position.copy(), other.position.copy()]);
+      stroke(255, 100, 100, signalAlpha);
+      strokeWeight(0.5);
+      for (let [a, b] of signalLines) {
+        line(a.x, a.y, b.x, b.y);
+      }
+
+      updateStats();
+    }
+
+    function updateGrid(boids) {
+      grid = {};
+      for (let boid of boids) {
+        let key = `${Math.floor(boid.position.x / cellSize)}:${Math.floor(boid.position.y / cellSize)}`;
+        if (!grid[key]) grid[key] = [];
+        grid[key].push(boid);
+      }
+    }
+
+    function getNearby(boid) {
+      let x = Math.floor(boid.position.x / cellSize);
+      let y = Math.floor(boid.position.y / cellSize);
+      let neighbors = [];
+      for (let dx = -1; dx <= 1; dx++) {
+        for (let dy = -1; dy <= 1; dy++) {
+          let key = `${x + dx}:${y + dy}`;
+          if (grid[key]) neighbors.push(...grid[key]);
+        }
+      }
+      return neighbors;
+    }
+
+    class Boid {
+      constructor(x, y, genome) {
+        this.position = createVector(x, y);
+        this.velocity = p5.Vector.random2D().setMag(random(initSpeedMin, initSpeedMax));
+        this.acceleration = createVector();
+        this.maxForce = maxForce;
+        this.maxSpeed = maxSpeed;
+        this.genome = genome || Boid.randomGenome();
+        this.age = 0;
+        this.lifespan = boidLifespan;
+      }
+
+      static randomGenome() {
+        return Array.from({ length: genomeLength }, () => random([0, 1])).join('');
+      }
+
+      static invert(str) {
+        return str.split('').map(c => c === '0' ? '1' : '0').join('');
+      }
+
+      static mutateGenome(genome) {
+        return genome
+          .split('')
+          .map(bit => (random() < 0.01 ? (bit === '0' ? '1' : '0') : bit))
+          .join('');
+      }
+
+      static crossover(g1, g2) {
+        const mid = floor(random(1, genomeLength - 1));
+        const childGenome = g1.slice(0, mid) + g2.slice(mid);
+        return Boid.mutateGenome(childGenome);
+      }
+
+      static brightColorFromGenome(g) {
+        let r = parseInt(g.slice(0, 2), 2) * 85 + 85;
+        let gVal = parseInt(g.slice(2, 4), 2) * 85 + 85;
+        let b = parseInt(g.slice(4, 6), 2) * 85 + 85;
+        return color(r % 256, gVal % 256, b % 256);
+      }
+
+      signal(neighbors) {
+        if (random() < signalProbability) {
+          const maxStart = Math.max(0, genomeLength - 3);
+          const start = floor(random(0, maxStart + 1));
+          const end = Math.min(start + 3, genomeLength);
+          const substr = this.genome.substring(start, end);
+          const inverted = Boid.invert(substr);
+
+          for (let other of neighbors) {
+            if (other !== this && other.genome.includes(inverted)) {
+              const dir = p5.Vector.sub(this.position, other.position);
+              const distance = dir.mag();
+              if (distance < signalRange) {
+                const attraction = dir.setMag(signalForce);
+                other.acceleration.add(attraction);
+                signalLines.push([this.position.copy(), other.position.copy()]);
+              }
+            }
           }
         }
       }
-    }
-  }
 
-  show() {
-    noStroke();
-    fill(Boid.brightColorFromGenome(this.genome));
-    push();
-    translate(this.position.x, this.position.y);
-    rotate(this.velocity.heading());
-    scale(boidSize);
-    triangle(-2, 1.5, -2, -1.5, 3, 0);
-    pop();
-  }
+      reproduce(neighbors) {
+        for (let other of neighbors) {
+          if (other !== this && p5.Vector.dist(this.position, other.position) < 10 && random() < 0.001) {
+            const childGenome = Boid.crossover(this.genome, other.genome);
+            const child = new Boid(this.position.x, this.position.y, childGenome);
+            return child;
+          }
+        }
+        return null;
+      }
 
-  edges() {
-    this.position.x = (this.position.x + width) % width;
-    this.position.y = (this.position.y + height) % height;
-  }
+      show() {
+        noStroke();
+        fill(Boid.brightColorFromGenome(this.genome));
+        push();
+        translate(this.position.x, this.position.y);
+        rotate(this.velocity.heading());
+        scale(boidSize);
+        triangle(-2, 1.5, -2, -1.5, 3, 0);
+        pop();
+      }
 
-  align(boids) {
-    let steering = createVector(), total = 0;
-    for (let other of boids) {
-      if (other !== this && p5.Vector.dist(this.position, other.position) < alignRange) {
-        steering.add(other.velocity); total++;
+      edges() {
+        this.position.x = (this.position.x + width) % width;
+        this.position.y = (this.position.y + height) % height;
+      }
+
+      align(boids) {
+        let steering = createVector(), total = 0;
+        for (let other of boids) {
+          if (other !== this && p5.Vector.dist(this.position, other.position) < alignRange) {
+            steering.add(other.velocity); total++;
+          }
+        }
+        if (total > 0) {
+          steering.div(total).setMag(this.maxSpeed).sub(this.velocity).limit(this.maxForce);
+        }
+        return steering;
+      }
+
+      separation(boids) {
+        let steering = createVector(), total = 0;
+        for (let other of boids) {
+          let d = p5.Vector.dist(this.position, other.position);
+          if (other !== this && d < sepRange && d > 0) {
+            let diff = p5.Vector.sub(this.position, other.position).div(d);
+            steering.add(diff); total++;
+          }
+        }
+        if (total > 0) {
+          steering.div(total).setMag(this.maxSpeed).sub(this.velocity).limit(this.maxForce);
+        }
+        return steering;
+      }
+
+      cohesion(boids) {
+        let steering = createVector(), total = 0;
+        for (let other of boids) {
+          if (other !== this && p5.Vector.dist(this.position, other.position) < cohRange) {
+            steering.add(other.position); total++;
+          }
+        }
+        if (total > 0) {
+          steering.div(total).sub(this.position).setMag(this.maxSpeed).sub(this.velocity).limit(this.maxForce);
+        }
+        return steering;
+      }
+
+      flock(boids) {
+        this.acceleration.set(0, 0);
+        this.acceleration.add(this.align(boids).mult(alignWeight));
+        this.acceleration.add(this.separation(boids).mult(sepWeight));
+        this.acceleration.add(this.cohesion(boids).mult(cohWeight));
+        this.maxSpeed = maxSpeed;
+        this.maxForce = maxForce;
+      }
+
+      update() {
+        this.velocity.add(this.acceleration).limit(this.maxSpeed);
+        this.position.add(this.velocity);
+        this.age++;
+      }
+
+      isDead() {
+        return this.age > this.lifespan;
       }
     }
-    if (total > 0) {
-      steering.div(total).setMag(this.maxSpeed).sub(this.velocity).limit(this.maxForce);
-    }
-    return steering;
-  }
 
-  separation(boids) {
-    let steering = createVector(), total = 0;
-    for (let other of boids) {
-      let d = p5.Vector.dist(this.position, other.position);
-      if (other !== this && d < sepRange && d > 0) {
-        let diff = p5.Vector.sub(this.position, other.position).div(d);
-        steering.add(diff); total++;
+    function setupControls() {
+      const controls = [
+        'boidCount', 'maxSpeed', 'maxForce', 'alignWeight', 'sepWeight', 'cohWeight',
+        'alignRange', 'sepRange', 'cohRange', 'signalProb', 'signalRange', 'signalForce',
+        'boidSize', 'signalAlpha', 'bgBrightness', 'cellSize', 'targetFPS', 'genomeLength',
+        'initSpeedMin', 'initSpeedMax',
+        'initSpeedMin', 'initSpeedMax', 'boidLifespan'
+      ];
+
+      controls.forEach(id => {
+        const slider = document.getElementById(id);
+        const display = document.getElementById(id + 'Display');
+
+        slider.addEventListener('input', () => {
+          const value = parseFloat(slider.value);
+          display.textContent = value;
+          updateParameter(id, value);
+        });
+      });
+    }
+
+    function updateParameter(param, value) {
+      switch (param) {
+        case 'boidCount': setBoidCount(value); break;
+        case 'maxSpeed': maxSpeed = value; break;
+        case 'maxForce': maxForce = value; break;
+        case 'alignWeight': alignWeight = value; break;
+        case 'sepWeight': sepWeight = value; break;
+        case 'cohWeight': cohWeight = value; break;
+        case 'alignRange': alignRange = value; break;
+        case 'sepRange': sepRange = value; break;
+        case 'cohRange': cohRange = value; break;
+        case 'signalProb': signalProbability = value; break;
+        case 'signalRange': signalRange = value; break;
+        case 'signalForce': signalForce = value; break;
+        case 'boidSize': boidSize = value; break;
+        case 'signalAlpha': signalAlpha = value; break;
+        case 'bgBrightness': bgBrightness = value; break;
+        case 'cellSize': cellSize = value; break;
+        case 'targetFPS': frameRate(value); break;
+        case 'boidLifespan':
+          boidLifespan = value;
+          break;
+
+        case 'genomeLength':
+          genomeLength = value;
+          regenerateGenomes();
+          break;
+        case 'initSpeedMin': initSpeedMin = value; break;
+        case 'initSpeedMax': initSpeedMax = value; break;
       }
     }
-    if (total > 0) {
-      steering.div(total).setMag(this.maxSpeed).sub(this.velocity).limit(this.maxForce);
-    }
-    return steering;
-  }
 
-  cohesion(boids) {
-    let steering = createVector(), total = 0;
-    for (let other of boids) {
-      if (other !== this && p5.Vector.dist(this.position, other.position) < cohRange) {
-        steering.add(other.position); total++;
+    function setBoidCount(count) {
+      if (count > flock.length) {
+        for (let i = flock.length; i < count; i++) {
+          flock.push(new Boid(random(width), random(height)));
+        }
+      } else {
+        flock = flock.slice(0, count);
+      }
+      document.getElementById('boidCount').value = count;
+      document.getElementById('boidCountDisplay').textContent = count;
+    }
+
+    function regenerateGenomes() {
+      flock.forEach(boid => {
+        boid.genome = Boid.randomGenome();
+      });
+    }
+
+    function loadPreset(preset) {
+      const presets = {
+        calm: {
+          maxSpeed: 1.5, maxForce: 0.05, alignWeight: 1.5, sepWeight: 1, cohWeight: 1.2,
+          signalProbability: 0.001, signalForce: 0.05
+        },
+        chaotic: {
+          maxSpeed: 5, maxForce: 0.3, alignWeight: 0.5, sepWeight: 0.8, cohWeight: 0.3,
+          signalProbability: 0.008, signalForce: 0.2
+        },
+        swarm: {
+          maxSpeed: 3, maxForce: 0.15, alignWeight: 2, sepWeight: 3, cohWeight: 2,
+          signalProbability: 0.001, signalForce: 0.1
+        },
+        signals: {
+          maxSpeed: 2, maxForce: 0.1, alignWeight: 0.8, sepWeight: 1, cohWeight: 0.8,
+          signalProbability: 0.01, signalForce: 0.3, signalRange: 80
+        },
+        minimal: {
+          maxSpeed: 1, maxForce: 0.03, alignWeight: 0.3, sepWeight: 0.5, cohWeight: 0.2,
+          signalProbability: 0.0005, signalForce: 0.02
+        },
+        default: {
+          maxSpeed: 2.5, maxForce: 0.1, alignWeight: 1, sepWeight: 1.5, cohWeight: 1,
+          signalProbability: 0.002, signalForce: 0.1, signalRange: 50
+        }
+      };
+
+      const config = presets[preset];
+      if (config) {
+        Object.keys(config).forEach(key => {
+          window[key] = config[key];
+          const slider = document.getElementById(key.replace('Probability', 'Prob'));
+          if (slider) {
+            slider.value = config[key];
+            document.getElementById(slider.id + 'Display').textContent = config[key];
+          }
+        });
       }
     }
-    if (total > 0) {
-      steering.div(total).sub(this.position).setMag(this.maxSpeed).sub(this.velocity).limit(this.maxForce);
+
+    function randomizeAll() {
+      maxSpeed = random(0.5, 6);
+      maxForce = random(0.01, 0.3);
+      alignWeight = random(0, 2.5);
+      sepWeight = random(0, 3);
+      cohWeight = random(0, 2.5);
+      signalProbability = random(0, 0.008);
+      signalForce = random(0.01, 0.4);
+
+      // Update UI
+      setupControls();
     }
-    return steering;
-  }
 
-  flock(boids) {
-    this.acceleration.set(0, 0);
-    this.acceleration.add(this.align(boids).mult(alignWeight));
-    this.acceleration.add(this.separation(boids).mult(sepWeight));
-    this.acceleration.add(this.cohesion(boids).mult(cohWeight));
-    
-    // Update properties
-    this.maxSpeed = maxSpeed;
-    this.maxForce = maxForce;
-  }
-
-  update() {
-    this.velocity.add(this.acceleration).limit(this.maxSpeed);
-    this.position.add(this.velocity);
-  }
-}
-
-function setupControls() {
-  const controls = [
-    'boidCount', 'maxSpeed', 'maxForce', 'alignWeight', 'sepWeight', 'cohWeight',
-    'alignRange', 'sepRange', 'cohRange', 'signalProb', 'signalRange', 'signalForce',
-    'boidSize', 'signalAlpha', 'bgBrightness', 'cellSize', 'targetFPS', 'genomeLength',
-    'initSpeedMin', 'initSpeedMax'
-  ];
-
-  controls.forEach(id => {
-    const slider = document.getElementById(id);
-    const display = document.getElementById(id + 'Display');
-    
-    slider.addEventListener('input', () => {
-      const value = parseFloat(slider.value);
-      display.textContent = value;
-      updateParameter(id, value);
-    });
-  });
-}
-
-function updateParameter(param, value) {
-  switch(param) {
-    case 'boidCount': setBoidCount(value); break;
-    case 'maxSpeed': maxSpeed = value; break;
-    case 'maxForce': maxForce = value; break;
-    case 'alignWeight': alignWeight = value; break;
-    case 'sepWeight': sepWeight = value; break;
-    case 'cohWeight': cohWeight = value; break;
-    case 'alignRange': alignRange = value; break;
-    case 'sepRange': sepRange = value; break;
-    case 'cohRange': cohRange = value; break;
-    case 'signalProb': signalProbability = value; break;
-    case 'signalRange': signalRange = value; break;
-    case 'signalForce': signalForce = value; break;
-    case 'boidSize': boidSize = value; break;
-    case 'signalAlpha': signalAlpha = value; break;
-    case 'bgBrightness': bgBrightness = value; break;
-    case 'cellSize': cellSize = value; break;
-    case 'targetFPS': frameRate(value); break;
-    case 'genomeLength': 
-      genomeLength = value; 
-      regenerateGenomes(); 
-      break;
-    case 'initSpeedMin': initSpeedMin = value; break;
-    case 'initSpeedMax': initSpeedMax = value; break;
-  }
-}
-
-function setBoidCount(count) {
-  if (count > flock.length) {
-    for (let i = flock.length; i < count; i++) {
-      flock.push(new Boid(random(width), random(height)));
+    function clearAll() {
+      flock = [];
+      setBoidCount(0);
     }
-  } else {
-    flock = flock.slice(0, count);
-  }
-  document.getElementById('boidCount').value = count;
-  document.getElementById('boidCountDisplay').textContent = count;
-}
 
-function regenerateGenomes() {
-  flock.forEach(boid => {
-    boid.genome = Boid.randomGenome();
-  });
-}
-
-function loadPreset(preset) {
-  const presets = {
-    calm: {
-      maxSpeed: 1.5, maxForce: 0.05, alignWeight: 1.5, sepWeight: 1, cohWeight: 1.2,
-      signalProbability: 0.001, signalForce: 0.05
-    },
-    chaotic: {
-      maxSpeed: 5, maxForce: 0.3, alignWeight: 0.5, sepWeight: 0.8, cohWeight: 0.3,
-      signalProbability: 0.008, signalForce: 0.2
-    },
-    swarm: {
-      maxSpeed: 3, maxForce: 0.15, alignWeight: 2, sepWeight: 3, cohWeight: 2,
-      signalProbability: 0.001, signalForce: 0.1
-    },
-    signals: {
-      maxSpeed: 2, maxForce: 0.1, alignWeight: 0.8, sepWeight: 1, cohWeight: 0.8,
-      signalProbability: 0.01, signalForce: 0.3, signalRange: 80
-    },
-    minimal: {
-      maxSpeed: 1, maxForce: 0.03, alignWeight: 0.3, sepWeight: 0.5, cohWeight: 0.2,
-      signalProbability: 0.0005, signalForce: 0.02
-    },
-    default: {
-      maxSpeed: 2.5, maxForce: 0.1, alignWeight: 1, sepWeight: 1.5, cohWeight: 1,
-      signalProbability: 0.002, signalForce: 0.1, signalRange: 50
+    function explode() {
+      flock.forEach(boid => {
+        boid.velocity = p5.Vector.random2D().setMag(random(5, 10));
+      });
     }
-  };
 
-  const config = presets[preset];
-  if (config) {
-    Object.keys(config).forEach(key => {
-      window[key] = config[key];
-      const slider = document.getElementById(key.replace('Probability', 'Prob'));
-      if (slider) {
-        slider.value = config[key];
-        document.getElementById(slider.id + 'Display').textContent = config[key];
+    function updateStats() {
+      if (frameCount % 30 === 0) { // Update every 30 frames
+        document.getElementById('fps').textContent = Math.round(frameRate());
+        document.getElementById('signalCount').textContent = signalLines.length;
+
+        let avgSpeed = 0;
+        flock.forEach(boid => avgSpeed += boid.velocity.mag());
+        avgSpeed = (avgSpeed / flock.length).toFixed(2);
+        document.getElementById('avgSpeed').textContent = avgSpeed;
+
+        // Simple cluster detection
+        let clusters = 0;
+        Object.keys(grid).forEach(key => {
+          if (grid[key] && grid[key].length > 5) clusters++;
+        });
+        document.getElementById('clusterCount').textContent = clusters;
       }
-    });
-  }
-}
+    }
 
-function randomizeAll() {
-  maxSpeed = random(0.5, 6);
-  maxForce = random(0.01, 0.3);
-  alignWeight = random(0, 2.5);
-  sepWeight = random(0, 3);
-  cohWeight = random(0, 2.5);
-  signalProbability = random(0, 0.008);
-  signalForce = random(0.01, 0.4);
-  
-  // Update UI
-  setupControls();
-}
-
-function clearAll() {
-  flock = [];
-  setBoidCount(0);
-}
-
-function explode() {
-  flock.forEach(boid => {
-    boid.velocity = p5.Vector.random2D().setMag(random(5, 10));
-  });
-}
-
-function updateStats() {
-  if (frameCount % 30 === 0) { // Update every 30 frames
-    document.getElementById('fps').textContent = Math.round(frameRate());
-    document.getElementById('signalCount').textContent = signalLines.length;
-    
-    let avgSpeed = 0;
-    flock.forEach(boid => avgSpeed += boid.velocity.mag());
-    avgSpeed = (avgSpeed / flock.length).toFixed(2);
-    document.getElementById('avgSpeed').textContent = avgSpeed;
-    
-    // Simple cluster detection
-    let clusters = 0;
-    Object.keys(grid).forEach(key => {
-      if (grid[key] && grid[key].length > 5) clusters++;
-    });
-    document.getElementById('clusterCount').textContent = clusters;
-  }
-}
-
-function windowResized() {
-  resizeCanvas(windowWidth - 320, windowHeight);
-}
-</script>
+    function windowResized() {
+      resizeCanvas(windowWidth - 320, windowHeight);
+    }
+  </script>
 </body>
+
 </html>
