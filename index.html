@@ -156,14 +156,13 @@
       <h3>Population</h3>
       <div class="control-item">
         <label>Boid Count</label>
-        <input type="range" id="boidCount" min="10" max="2000" value="1000">
-        <span class="value-display" id="boidCountDisplay">1000</span>
+        <input type="range" id="boidCount" min="10" max="1000" value="500">
+        <span class="value-display" id="boidCountDisplay">500</span>
       </div>
       <div class="preset-buttons">
         <button onclick="setBoidCount(50)">Minimal</button>
         <button onclick="setBoidCount(500)">Medium</button>
         <button onclick="setBoidCount(1000)">Standard</button>
-        <button onclick="setBoidCount(1500)">Dense</button>
       </div>
     </div>
 
@@ -341,6 +340,9 @@
     let initSpeedMin = 1, initSpeedMax = 3;
     let boidLifespan = 2000;
 
+    const MAX_BOIDS = 1000;
+
+
     function setup() {
       let canvas = createCanvas(windowWidth - 320, windowHeight, WEBGL);
       canvas.parent('canvas-container');
@@ -366,7 +368,12 @@
         boid.flock(neighbors);
         boid.signal(neighbors);
         let offspring = boid.reproduce(neighbors);
-        if (offspring) newBoids.push(offspring);
+
+        if (offspring && flock.length + newBoids.length < MAX_BOIDS) {
+          newBoids.push(offspring);
+        }
+
+
         boid.update();
         boid.edges();
       }
@@ -613,6 +620,8 @@
     }
 
     function setBoidCount(count) {
+      count = Math.min(count, MAX_BOIDS);
+
       if (count > flock.length) {
         for (let i = flock.length; i < count; i++) {
           flock.push(new Boid(random(width), random(height)));
@@ -620,9 +629,11 @@
       } else {
         flock = flock.slice(0, count);
       }
+
       document.getElementById('boidCount').value = count;
       document.getElementById('boidCountDisplay').textContent = count;
     }
+
 
     function regenerateGenomes() {
       flock.forEach(boid => {
