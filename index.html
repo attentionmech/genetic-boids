@@ -229,8 +229,8 @@
       <h3>Aging</h3>
       <div class="control-item">
         <label>Boid Lifespan</label>
-        <input type="range" id="boidLifespan" min="100" max="10000" step="100" value="100">
-        <span class="value-display" id="boidLifespanDisplay">2000</span>
+        <input type="range" id="boidLifespan" min="100" max="10000" step="100" value="5000">
+        <span class="value-display" id="boidLifespanDisplay">5000</span>
       </div>
     </div>
 
@@ -369,17 +369,22 @@
         boid.signal(neighbors);
         let offspring = boid.reproduce(neighbors);
 
-        if (offspring && flock.length + newBoids.length < MAX_BOIDS) {
+        if (offspring) {
           newBoids.push(offspring);
         }
-
 
         boid.update();
         boid.edges();
       }
 
       flock = flock.filter(boid => !boid.isDead());
+
       flock.push(...newBoids);
+
+      if (flock.length > MAX_BOIDS) {
+        flock.sort((a, b) => b.age - a.age); // oldest first
+        flock = flock.slice(0, MAX_BOIDS);   // keep youngest
+      }
 
       for (let boid of flock) {
         boid.show();
@@ -406,15 +411,27 @@
     function getNearby(boid) {
       let x = Math.floor(boid.position.x / cellSize);
       let y = Math.floor(boid.position.y / cellSize);
-      let neighbors = [];
+      let neighbors = new Set();
+
       for (let dx = -1; dx <= 1; dx++) {
         for (let dy = -1; dy <= 1; dy++) {
           let key = `${x + dx}:${y + dy}`;
-          if (grid[key]) neighbors.push(...grid[key]);
+          if (grid[key]) {
+            grid[key].forEach(b => neighbors.add(b));
+          }
         }
       }
-      return neighbors;
+
+      const keys = Object.keys(grid);
+      for (let i = 0; i < 10; i++) {
+        const randKey = keys[Math.floor(Math.random() * keys.length)];
+        grid[randKey].forEach(b => neighbors.add(b));
+      }
+
+      return Array.from(neighbors);
     }
+
+
 
     class Boid {
       constructor(x, y, genome) {
@@ -424,7 +441,7 @@
         this.maxForce = maxForce;
         this.maxSpeed = maxSpeed;
         this.genome = genome || Boid.randomGenome();
-        this.age = 0;
+        this.age = floor(random(0, this.lifespan));
         this.lifespan = boidLifespan;
       }
 
@@ -480,7 +497,7 @@
 
       reproduce(neighbors) {
         for (let other of neighbors) {
-          if (other !== this && p5.Vector.dist(this.position, other.position) < 10 && random() < 0.001) {
+          if (other !== this && p5.Vector.dist(this.position, other.position) < 20 && random() < 0.1) {
             const childGenome = Boid.crossover(this.genome, other.genome);
             const child = new Boid(this.position.x, this.position.y, childGenome);
             return child;
